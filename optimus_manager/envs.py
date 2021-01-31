@@ -20,8 +20,16 @@ DEFAULT_CONFIG_PATH = "/usr/share/optimus-manager.conf"
 USER_CONFIG_PATH = "/etc/optimus-manager/optimus-manager.conf"
 
 EXTRA_XORG_OPTIONS_PATHS = {
-    "integrated-gpu": "/etc/optimus-manager/xorg-integrated-gpu.conf",
-    "nvidia-gpu": "/etc/optimus-manager/xorg-nvidia-gpu.conf"
+    "integrated-mode": {
+        "integrated-gpu": "/etc/optimus-manager/xorg/integrated-mode/integrated-gpu.conf"
+    },
+    "nvidia-mode": {
+        "nvidia-gpu": "/etc/optimus-manager/xorg/nvidia-mode/nvidia-gpu.conf"
+    },
+    "hybrid-mode": {
+        "integrated-gpu": "/etc/optimus-manager/xorg/hybrid-mode/integrated-gpu.conf",
+        "nvidia-gpu": "/etc/optimus-manager/xorg/hybrid-mode/nvidia-gpu.conf"
+    }
 }
 
 XSETUP_SCRIPTS_PATHS = {

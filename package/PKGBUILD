@@ -15,8 +15,10 @@ optdepends=('bbswitch: alternative power switching method'
             'acpi_call: alternative power switching method'
             'xf86-video-intel: provides the Xorg intel driver')
 makedepends=('python-setuptools' 'git')
-backup=('etc/optimus-manager/xorg-integrated-gpu.conf'
-        'etc/optimus-manager/xorg-nvidia-gpu.conf'
+backup=('etc/optimus-manager/xorg/integrated-mode/integrated-gpu.conf'
+        'etc/optimus-manager/xorg/nvidia-mode/nvidia-gpu.conf'
+        'etc/optimus-manager/xorg/hybrid-mode/integrated-gpu.conf'
+        'etc/optimus-manager/xorg/hybrid-mode/nvidia-gpu.conf'
 
         'etc/optimus-manager/xsetup-integrated.sh'
         'etc/optimus-manager/xsetup-nvidia.sh'
@@ -60,8 +62,10 @@ package() {
   install -Dm644 login_managers/sddm/20-optimus-manager.conf "$pkgdir/etc/sddm.conf.d/20-optimus-manager.conf"
   install -Dm644 login_managers/lightdm/20-optimus-manager.conf  "$pkgdir/etc/lightdm/lightdm.conf.d/20-optimus-manager.conf"
   
-  install -Dm644 config/xorg-integrated-gpu.conf "$pkgdir/etc/optimus-manager/xorg-integrated-gpu.conf"
-  install -Dm644 config/xorg-nvidia-gpu.conf "$pkgdir/etc/optimus-manager/xorg-nvidia-gpu.conf"
+  install -Dm644 config/xorg/integrated-mode/integrated-gpu.conf "$pkgdir/etc/optimus-manager/xorg/integrated-mode/integrated-gpu.conf"
+  install -Dm644 config/xorg/nvidia-mode/nvidia-gpu.conf "$pkgdir/etc/optimus-manager/xorg/nvidia-mode/nvidia-gpu.conf"
+  install -Dm644 config/xorg/hybrid-mode/integrated-gpu.conf "$pkgdir/etc/optimus-manager/xorg/hybrid-mode/integrated-gpu.conf"
+  install -Dm644 config/xorg/hybrid-mode/nvidia-gpu.conf "$pkgdir/etc/optimus-manager/xorg/hybrid-mode/nvidia-gpu.conf"
   
   install -Dm755 config/xsetup-nvidia.sh "$pkgdir/etc/optimus-manager/xsetup-nvidia.sh"
   install -Dm755 config/xsetup-hybrid.sh "$pkgdir/etc/optimus-manager/xsetup-hybrid.sh"

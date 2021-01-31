@@ -251,14 +251,19 @@ def load_extra_xorg_options():
 
     xorg_extra = {}
 
-    for mode, path in envs.EXTRA_XORG_OPTIONS_PATHS.items():
+    for mode, path_by_gpu in envs.EXTRA_XORG_OPTIONS_PATHS.items():
+        xorg_extra[mode] = {}
 
-        try:
-            config_lines = _load_extra_xorg_file(path)
-            logger.info("Loaded extra %s Xorg options (%d lines)", mode, len(config_lines))
-            xorg_extra[mode] = config_lines
-        except FileNotFoundError:
-            pass
+        for gpu, path in path_by_gpu.items():
+
+            try:
+                config_lines = _load_extra_xorg_file(path)
+            except FileNotFoundError:
+                config_lines = []
+
+            if len(config_lines) > 0:
+                logger.info("Loaded extra %s Xorg options (%d lines)", mode, len(config_lines))
+            xorg_extra[mode][gpu] = config_lines
 
     return xorg_extra
 

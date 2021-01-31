@@ -147,6 +147,7 @@ def _get_xsetup_script_path(requested_mode):
 def _generate_nvidia(config, bus_ids, xorg_extra):
 
     integrated_gpu = "intel" if "intel" in bus_ids else "amd"
+    xorg_extra_lines = xorg_extra["nvidia-mode"]["nvidia-gpu"]
 
     text = _make_modules_paths_section()
 
@@ -156,7 +157,7 @@ def _generate_nvidia(config, bus_ids, xorg_extra):
             "\tInactive \"integrated\"\n" \
             "EndSection\n\n"
 
-    text += _make_nvidia_device_section(config, bus_ids, xorg_extra)
+    text += _make_nvidia_device_section(config, bus_ids, xorg_extra_lines)
 
     text += "Section \"Screen\"\n" \
             "\tIdentifier \"nvidia\"\n" \
@@ -198,14 +199,19 @@ def _make_modules_paths_section():
 
 
 def _generate_intel(config, bus_ids, xorg_extra):
-    text = _make_intel_device_section(config, bus_ids, xorg_extra)
+    xorg_extra_lines = xorg_extra["integrated-mode"]["integrated-gpu"]
+    text = _make_intel_device_section(config, bus_ids, xorg_extra_lines)
     return text
 
 def _generate_amd(config, bus_ids, xorg_extra):
-    text = _make_amd_device_section(config, bus_ids, xorg_extra)
+    xorg_extra_lines = xorg_extra["integrated-mode"]["integrated-gpu"]
+    text = _make_amd_device_section(config, bus_ids, xorg_extra_lines)
     return text
 
 def _generate_hybrid_intel(config, bus_ids, xorg_extra):
+
+    xorg_extra_lines_integrated = xorg_extra["hybrid-mode"]["integrated-gpu"]
+    xorg_extra_lines_nvidia = xorg_extra["hybrid-mode"]["nvidia-gpu"]
 
     text = _make_modules_paths_section()
 
@@ -216,7 +222,7 @@ def _generate_hybrid_intel(config, bus_ids, xorg_extra):
            "\tOption \"AllowNVIDIAGPUScreens\"\n" \
            "EndSection\n\n"
 
-    text += _make_intel_device_section(config, bus_ids, xorg_extra)
+    text += _make_intel_device_section(config, bus_ids, xorg_extra_lines_integrated)
 
     text += "Section \"Screen\"\n" \
            "\tIdentifier \"intel\"\n" \
@@ -227,7 +233,7 @@ def _generate_hybrid_intel(config, bus_ids, xorg_extra):
 
     text += "EndSection\n\n"
 
-    text += _make_nvidia_device_section(config, bus_ids, xorg_extra)
+    text += _make_nvidia_device_section(config, bus_ids, xorg_extra_lines_nvidia)
 
     text += "Section \"Screen\"\n" \
            "\tIdentifier \"nvidia\"\n" \
@@ -240,6 +246,9 @@ def _generate_hybrid_intel(config, bus_ids, xorg_extra):
 
 def _generate_hybrid_amd(config, bus_ids, xorg_extra):
 
+    xorg_extra_lines_integrated = xorg_extra["hybrid-mode"]["integrated-gpu"]
+    xorg_extra_lines_nvidia = xorg_extra["hybrid-mode"]["nvidia-gpu"]
+
     text = _make_modules_paths_section()
 
     text += "Section \"ServerLayout\"\n" \
@@ -248,7 +257,7 @@ def _generate_hybrid_amd(config, bus_ids, xorg_extra):
            "\tOption \"AllowNVIDIAGPUScreens\"\n" \
            "EndSection\n\n"
 
-    text += _make_amd_device_section(config, bus_ids, xorg_extra)
+    text += _make_amd_device_section(config, bus_ids, xorg_extra_lines_integrated)
 
     text += "Section \"Screen\"\n" \
             "\tIdentifier \"amd\"\n" \
@@ -259,7 +268,7 @@ def _generate_hybrid_amd(config, bus_ids, xorg_extra):
 
     text += "EndSection\n\n"
 
-    text += _make_nvidia_device_section(config, bus_ids, xorg_extra)
+    text += _make_nvidia_device_section(config, bus_ids, xorg_extra_lines_nvidia)
 
     text += "Section \"Screen\"\n" \
            "\tIdentifier \"nvidia\"\n" \
@@ -270,7 +279,7 @@ def _generate_hybrid_amd(config, bus_ids, xorg_extra):
 
     return text
 
-def _make_nvidia_device_section(config, bus_ids, xorg_extra):
+def _make_nvidia_device_section(config, bus_ids, xorg_extra_lines):
 
     options = config["nvidia"]["options"].replace(" ", "").split(",")
 
@@ -282,14 +291,15 @@ def _make_nvidia_device_section(config, bus_ids, xorg_extra):
         text += "\tOption \"Coolbits\" \"28\"\n"
     if "triple_buffer" in options:
         text += "\tOption \"TripleBuffer\" \"true\"\n"
-    if "nvidia" in xorg_extra.keys():
-        for line in xorg_extra["nvidia"]:
-            text += ("\t" + line + "\n")
+
+    for line in xorg_extra_lines:
+        text += ("\t" + line + "\n")
+
     text += "EndSection\n\n"
 
     return text
 
-def _make_intel_device_section(config, bus_ids, xorg_extra):
+def _make_intel_device_section(config, bus_ids, xorg_extra_lines):
 
     logger = get_logger()
 
@@ -311,15 +321,16 @@ def _make_intel_device_section(config, bus_ids, xorg_extra):
         tearfree_enabled_str = {"yes": "true", "no": "false"}[config["intel"]["tearfree"]]
         text += "\tOption \"TearFree\" \"%s\"\n" % tearfree_enabled_str
     text += "\tOption \"DRI\" \"%d\"\n" % dri
-    if "intel" in xorg_extra.keys():
-        for line in xorg_extra["intel"]:
-            text += ("\t" + line + "\n")
+
+    for line in xorg_extra_lines:
+        text += ("\t" + line + "\n")
+
     text += "EndSection\n\n"
 
     return text
 
 
-def _make_amd_device_section(config, bus_ids, xorg_extra):
+def _make_amd_device_section(config, bus_ids, xorg_extra_lines):
 
     logger = get_logger()
 
@@ -339,9 +350,10 @@ def _make_amd_device_section(config, bus_ids, xorg_extra):
         tearfree_enabled_str = {"yes": "true", "no": "false"}[config["amd"]["tearfree"]]
         text += "\tOption \"TearFree\" \"%s\"\n" % tearfree_enabled_str
     text += "\tOption \"DRI\" \"%d\"\n" % dri
-    if "amd" in xorg_extra.keys():
-        for line in xorg_extra["amd"]:
-            text += ("\t" + line + "\n")
+
+    for line in xorg_extra_lines:
+        text += ("\t" + line + "\n")
+
     text += "EndSection\n\n"
 
     return text
