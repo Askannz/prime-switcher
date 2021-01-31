@@ -70,7 +70,7 @@ def is_there_a_MHWD_file():
     return os.path.isfile("/etc/X11/xorg.conf.d/90-mhwd.conf")
 
 
-def do_xsetup(requested_mode):
+def do_xsetup(requested_mode, config, bus_ids):
 
     logger = get_logger()
 
@@ -79,7 +79,11 @@ def do_xsetup(requested_mode):
         logger.info("Running xrandr commands")
 
         try:
-            exec_bash("xrandr --setprovideroutputsource modesetting NVIDIA-0")
+            provider = checks.get_integrated_provider()
+            if config["amd"]["driver"] == "amdgpu" and "amd" in bus_ids:
+                exec_bash("xrandr --setprovideroutputsource \"%s\" NVIDIA-0" % provider)
+            else:
+                exec_bash("xrandr --setprovideroutputsource modesetting NVIDIA-0")
             exec_bash("xrandr --auto")
         except BashError as e:
             logger.error("Cannot setup PRIME : %s", str(e))
@@ -169,11 +173,14 @@ def _generate_nvidia(config, bus_ids, xorg_extra):
 
     text += "EndSection\n\n"
 
-    text += "Section \"Device\"\n" \
-            "\tIdentifier \"integrated\"\n" \
-            "\tDriver \"modesetting\"\n"
-    text += "\tBusID \"%s\"\n" % bus_ids[integrated_gpu]
-    text += "EndSection\n\n"
+    if integrated_gpu == "intel":
+        text += "Section \"Device\"\n" \
+                "\tIdentifier \"integrated\"\n" \
+                "\tDriver \"modesetting\"\n"
+        text += "\tBusID \"%s\"\n" % bus_ids["intel"]
+        text += "EndSection\n\n"
+    else:
+        text += _make_amd_device_section(config, bus_ids, xorg_extra)
 
     text += "Section \"Screen\"\n" \
             "\tIdentifier \"integrated\"\n" \

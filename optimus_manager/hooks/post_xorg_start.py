@@ -3,6 +3,7 @@ from ..config import load_config
 from .. import var
 from ..xorg import do_xsetup, set_DPI
 from ..log_utils import set_logger_config, get_logger
+from ..pci import get_gpus_bus_ids
 
 
 def main():
@@ -24,8 +25,9 @@ def main():
 
         requested_mode = prev_state["requested_mode"]
 
-        do_xsetup(requested_mode)
         config = load_config()
+        bus_ids = get_gpus_bus_ids()
+        do_xsetup(requested_mode, config, bus_ids)
         set_DPI(config)
 
         state = {

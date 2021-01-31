@@ -46,6 +46,18 @@ def get_active_renderer():
     else:
         return "integrated"
 
+def get_integrated_provider():
+
+    try:
+        provider = exec_bash("xrandr --listproviders")
+    except BashError as e:
+        raise CheckError("Cannot list xrandr provdiers : %s")
+
+    for line in re.findall("name:.*", provider):
+        for _p in line.split("name:")[1].split():
+            if _p == "AMD":
+                return line.split("name:")[1]
+
 
 def is_module_available(module_name):
 
