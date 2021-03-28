@@ -61,12 +61,14 @@ def is_module_available(module_name):
         shell=True, stdout=subprocess.DEVNULL
     ).returncode == 0
 
+
 def is_module_loaded(module_name):
 
     return subprocess.run(
         f"lsmod | grep -E \"^{module_name}\"",
         shell=True, stdout=subprocess.DEVNULL
     ).returncode == 0
+
 
 def get_current_display_manager():
 
@@ -86,6 +88,7 @@ def using_patched_GDM():
     folder_path_2 = "/etc/gdm3/Prime"
 
     return os.path.isdir(folder_path_1) or os.path.isdir(folder_path_2)
+
 
 def check_offloading_available():
 
@@ -149,9 +152,13 @@ def _is_service_active(service_name):
     else:
         return _is_service_active_dbus(system_bus, service_name)
 
+
 def _is_service_active_dbus(system_bus, service_name):
 
-    systemd = system_bus.get_object("org.freedesktop.systemd1", "/org/freedesktop/systemd1")
+    try:
+        systemd = system_bus.get_object("org.freedesktop.systemd1", "/org/freedesktop/systemd1")
+    except dbus.exceptions.DBusException:  # fallback for systems without dbus(assuming it's openrc if not dbus)
+        return _is_service_active_openrc(service_name)
 
     try:
         unit_path = systemd.GetUnit("%s.service" % service_name, dbus_interface="org.freedesktop.systemd1.Manager")
@@ -163,6 +170,15 @@ def _is_service_active_dbus(system_bus, service_name):
     state = properties_manager.Get("org.freedesktop.systemd1.Unit", "SubState")
 
     return state == "running"
+
+
+def _is_service_active_openrc(service_name):
+    try:
+        exec_bash("rc-status --nocolor default | grep -E '%s.*started'" % service_name)
+    except BashError:
+        return False
+    else:
+        return True
 
 
 def _is_service_active_bash(service_name):
