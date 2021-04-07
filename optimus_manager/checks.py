@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from ctypes import byref, POINTER, c_uint, Structure, c_int, c_void_p, CDLL
 import re
 import subprocess
 import dbus
@@ -35,6 +36,46 @@ def is_ac_power_connected():
 
         except IOError:
             continue
+
+    return False
+
+
+class NvCfgPciDevice(Structure):
+    _fields_ = [("domain", c_int), ("bus", c_int), ("slot", c_int), ("function", c_int)]
+
+
+NvCfgPciDevicePtr = POINTER(NvCfgPciDevice)
+
+
+def is_nvidia_display_connected():
+    num_gpus = c_int()
+    gpus = NvCfgPciDevicePtr()
+
+    try:
+        nvcfg_lib = CDLL("libnvidia-cfg.so")
+    except OSError:
+        raise CheckError("Failed to open 'libnvidia-cfg.so'. Is package 'nvidia-utils' installed?")
+
+    if nvcfg_lib.nvCfgGetPciDevices(byref(num_gpus), byref(gpus)) != 1:
+        return False
+
+    for i in range(num_gpus.value):
+        device_handle = c_void_p()
+
+        try:
+            if nvcfg_lib.nvCfgOpenPciDevice(gpus[i].domain, gpus[i].bus, gpus[i].slot,
+                                            c_int(0), byref(device_handle)) != 1:
+                continue
+
+            mask = c_uint()
+            if nvcfg_lib.nvCfgGetDisplayDevices(device_handle, byref(mask)) != 1:
+                continue
+
+            if mask.value != 0:
+                return True
+
+        finally:
+            nvcfg_lib.nvCfgCloseDevice(device_handle)  # ignores if the function fails
 
     return False
 

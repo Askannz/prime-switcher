@@ -2,7 +2,7 @@ import sys
 from ..config import load_config, copy_user_config
 from .. import var
 from ..xorg import cleanup_xorg_conf
-from ..checks import is_ac_power_connected
+from ..checks import is_ac_power_connected, is_nvidia_display_connected
 from ..kernel_parameters import get_kernel_parameters
 from ..log_utils import set_logger_config, get_logger
 
@@ -39,6 +39,12 @@ def main():
                 eff_startup_mode = config["optimus"]["startup_auto_extpower_mode"]
             else:
                 eff_startup_mode = config["optimus"]["startup_auto_battery_mode"]
+            logger.info("Effective startup mode is: %s", eff_startup_mode)
+        elif startup_mode == "auto_nvdisplay":
+            if is_nvidia_display_connected():
+                eff_startup_mode = config["optimus"]["startup_auto_nvdisplay_on_mode"]
+            else:
+                eff_startup_mode = config["optimus"]["startup_auto_nvdisplay_off_mode"]
             logger.info("Effective startup mode is: %s", eff_startup_mode)
         else:
             eff_startup_mode = startup_mode

@@ -12,7 +12,8 @@ provides=("optimus-manager=$pkgver")
 depends=('python3' 'python-setuptools' 'python-dbus' 'mesa-demos' 'xorg-xrandr')
 optdepends=('bbswitch: alternative power switching method'
             'acpi_call: alternative power switching method'
-            'xf86-video-intel: provides the Xorg intel driver')
+            'xf86-video-intel: provides the Xorg intel driver',
+            'nvidia-utils: allows use of auto_nvdisplay startup_mode')
 makedepends=('python-setuptools' 'git')
 backup=('etc/optimus-manager/xorg/integrated-mode/integrated-gpu.conf'
         'etc/optimus-manager/xorg/nvidia-mode/integrated-gpu.conf'
